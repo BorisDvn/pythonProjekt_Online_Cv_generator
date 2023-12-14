@@ -1,0 +1,314 @@
+{% extends 'base.html' %}
+{% load bootstrap4 %}
+{% load static %}
+
+{% block style %}
+    <style>
+        .col{
+            border: 0px solid black;
+            height:  auto;
+            margin-bottom: 20px;
+        }
+
+        /* darker arrows */
+        .carousel-control-next-icon {
+            background-image:url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='%23000' viewBox='0 0 8 8'%3e%3cpath d='M2.75 0l-1.5 1.5 2.5 2.5-2.5 2.5 1.5 1.5 4-4-4-4z'/%3e%3c/svg%3e");
+        }
+        .carousel-control-prev-icon {
+            background-image:url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='%23000' viewBox='0 0 8 8'%3e%3cpath d='M5.25 0l-4 4 4 4 1.5-1.5-2.5-2.5 2.5-2.5-1.5-1.5z'/%3e%3c/svg%3e");
+        }
+
+        #carouselName{
+            text-align: right;
+        }
+
+        .form-group {
+            display: none;
+        }
+    </style>
+ {% endblock %}
+
+
+{% block content %}
+
+    <h2 class="text-center display-3 mb-5 title"></h2>
+    <br>
+    <div class="container">
+        <!-- Top -->
+        <div class="row cv">
+            <div class="col-4 col cv-top-img">
+                <div id="carouselPhoto" class="col-12 col col-photo carousel slide" data-interval="false"></div>
+                <div id="carouselName" class="col-12 col carousel slide" data-interval="false"></div>
+                <div id="carouselAdress" class="col-12 col carousel slide" data-interval="false"></div>
+                <div id="carouselLanguage" class="col-12 col carousel slide" data-interval="false"></div>
+            </div>
+            <div class="col-8 col cv-top-info">
+             <!--   <div id="carouselAbout" class="col-12 col carousel slide" data-interval="false"></div> -->
+                <div id="carouselExperience" class="col-12 col carousel slide" data-interval="false"></div>
+                <div id="carouselEducation" class="col-12 col carousel slide" data-interval="false"></div>
+                <div id="carouselSkills" class="col-12 col carousel slide" data-interval="false"></div>
+            </div>
+        </div>
+
+        <div class="container text-center my-5">
+            <form action="" method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+                {% bootstrap_form form %}
+                <button type="submit" class="btn btn-lg btn-primary" style="width: 120px" onclick="saveCV()">Save</button>
+            </form>
+        </div>
+    </div>
+
+
+    <script>
+        // initialize iframes and resize them
+        {% for id in ids %}
+            var edu = "<div class=\"carousel-inner\">\n"
+                {% for key, value in templates.items %}
+                    {% if id == key %}
+                        {% for template in value %}
+                            edu += "<div class=\"carousel-item\">\n" +
+                                "<iframe src=\"../../static/{{ template }}\" scrolling=\"no\" class=\"d-block  w-100\" " +
+                                "frameborder=\"0\" ></iframe>\n" +
+                                "</div>\n"
+                        {% endfor %}
+                    {% endif %}
+                {% endfor %}
+            edu += "</div>\n" +
+                "<a class=\"carousel-control-prev\" href=\"#carousel{{ id }}\" role=\"button\" data-slide=\"prev\">\n" +
+                "<span class=\"carousel-control-prev-icon\" aria-hidden=\"true\"></span>\n" +
+                "<span class=\"sr-only\">Previous</span>\n" +
+                "</a>\n" +
+                "<a class=\"carousel-control-next\" href=\"#carousel{{ id }}\" role=\"button\" data-slide=\"next\">\n" +
+                "<span class=\"carousel-control-next-icon\" aria-hidden=\"true\"></span>\n" +
+                "<span class=\"sr-only\">Next</span>\n" +
+                "</a>";
+            $('#carousel{{ id }}').html(edu)
+            $('#carousel{{ id }} .carousel-item').first().addClass('active')
+        {% endfor %}
+
+        $(function(){
+            $("#id_name").parent().show().css("width","40%").css("margin","auto").css("margin-bottom","30px")
+            $("#id_description").parent().show().css("width","40%").css("margin","auto").css("margin-bottom","30px")
+            $('<input id="saveinfo" type="hidden" name="save" value="save">').insertBefore($("form").find("button"))
+            {% if cv %}
+                $("form").hide();
+                $(".title").text("{{ cv.name }}")
+            {% else %}
+                $(".title").text("Choose your Design!")
+            {% endif %}
+
+            //initialize content of iframes
+            $("iframe").contents().find(".image").attr("src", "{{ data.picture.url }}")
+            $("iframe").contents().find(".text-name").html("{{ data.firstname }} <br> {{ data.lastname }}")
+            $("iframe").contents().find(".text-phone").text("{{ data.tel }}")
+            $("iframe").contents().find(".text-mail").text("{{ data.email }}")
+            $("iframe").contents().find(".text-adress").text("{{ data.adresse }}")
+
+            //initialize Skills
+            var skills = []
+            var levels = []
+            {% for skill in skills %}
+                skills.push("{{ skill.skill }}")
+                levels.push({{ skill.level }})
+            {% endfor %}
+            skills.forEach((s, i) => {
+                if(i === 0) {
+                    $("iframe").contents().find(".text-skills").text(s)
+                    $("iframe").contents().find(".pgb").css("width", ""+levels[i]*10+"%")
+                }
+                else {
+                    $("iframe").contents().find(".pg").each((index, element) => {
+                        var newSkill = $(element).find(".progress:first-child").clone()
+                        var newSkillText;
+                        if($(element).find(".text-skills").length !== 0) {
+                            newSkillText = $(element).find(".text-skills:first-child").clone()
+                            newSkillText.text(s)
+                        }
+                        else newSkill.find(".pgb").text(s)
+                        newSkill.find(".pgb").css("width", ""+levels[i]*10+"%")
+                        if(newSkillText){
+                            var newDiv = $('<div/>', {"class": 'row'})
+                            var newDiv2 = $('<div/>', {"class": 'col-8'})
+                            newSkillText.appendTo(newDiv)
+                            newSkill.appendTo(newDiv2)
+                            newDiv2.appendTo(newDiv)
+                            newDiv.appendTo($(element).parent())
+                        }
+                        else newSkill.appendTo($(element).parent())
+                        $(element).parent().html($(element).parent().html()+"<br>")
+                    })
+                }
+            })
+
+            //initialize Languages
+            var languages = []
+            var levels = []
+            {% for lang in languages %}
+                languages.push("{{ lang.language }}")
+                levels.push({{ lang.level }})
+            {% endfor %}
+            languages.forEach((s, i) => {
+                if(i === 0) {
+                    $("iframe").contents().find(".text-language").text(s)
+                    $("iframe").contents().find(".pgb-l").css("width", ""+levels[i]*10+"%")
+                }
+                else {
+                    $("iframe").contents().find(".pg-l").each((index, element) => {
+                        var newLang = $(element).find(".progress-l:first-child").clone()
+                        var newLangText;
+                        if($(element).find(".text-language").length !== 0) {
+                            newLangText = $(element).find(".text-language:first-child").clone()
+                            newLangText.text(s)
+                        }
+                        else newLang.find(".pgb-l").text(s)
+                        newLang.find(".pgb-l").css("width", ""+levels[i]*10+"%")
+                        if(newLangText){
+                            var newDiv = $('<div/>', {"class": 'row'})
+                            var newDiv2 = $('<div/>', {"class": 'col-8'})
+                            newLangText.appendTo(newDiv)
+                            newLang.appendTo(newDiv2)
+                            newDiv2.appendTo(newDiv)
+                            newDiv.appendTo($(element).parent())
+                        }
+                        else newLang.appendTo($(element).parent())
+                        $(element).parent().html($(element).parent().html()+"<br>")
+                    })
+                }
+            })
+
+            //initialize experience
+            var yearsFromExp = []
+            var yearsToExp = []
+            var institutionsExp = []
+            var descriptionsExp = []
+            {% for exp in experience %}
+                yearsFromExp.push("{{ exp.start }}")
+                yearsToExp.push("{{ exp.end }}")
+                institutionsExp.push("{{ exp.institution }}")
+                {% autoescape on %}
+                    descriptionsExp.push("{{ exp.description|linebreaksbr}}")
+                {% endautoescape %}
+            {% endfor %}
+            descriptionsExp.forEach((s, i) => {
+                if(i === 0) {
+                    $("iframe").contents().find(".text-year").text(yearsFromExp[i]+" - "+yearsToExp[i]+" | "+institutionsExp[i])
+                    $("iframe").contents().find(".text-exp").html(s)
+                }
+                else {
+                    $("iframe").contents().find(".exp").each((index, element) => {
+                        var newExp = $(element).find(".orig").clone()
+                        newExp.find(".text-year").text(yearsFromExp[i]+" - "+yearsToExp[i]+" | "+institutionsExp[i])
+                        newExp.find(".text-exp").html(s)
+                        newExp.appendTo($(element))
+                        $(element).html($(element).html()+"<br>")
+                    })
+                }
+            })
+
+            //initialize education
+            var yearsFromEdu = []
+            var yearsToEdu = []
+            var institutionsEdu = []
+            var certificates = []
+            {% for edu in education %}
+                yearsFromEdu.push("{{ edu.start }}")
+                yearsToEdu.push("{{ edu.end }}")
+                institutionsEdu.push("{{ edu.institution }}")
+                certificates.push("{{ edu.certificate }}")
+            {% endfor %}
+            certificates.forEach((s, i) => {
+                if(i === 0) {
+                    $("iframe").contents().find(".text-year-edu").text(yearsFromEdu[i]+" - "+yearsToEdu[i])
+                    $("iframe").contents().find(".text-certificate").text(s)
+                    $("iframe").contents().find(".text-institution").text(institutionsEdu[i])
+                }
+                else {
+                    $("iframe").contents().find(".edu").each((index, element) => {
+                        var newEdu = $(element).find(".orig").clone()
+                        newEdu.find(".text-year-edu").text(yearsFromEdu[i]+" - "+yearsToEdu[i])
+                        newEdu.find(".text-certificate").text(s)
+                        newEdu.find(".text-institution").text(institutionsEdu[i])
+                        newEdu.appendTo($(element))
+                        $(element).html($(element).html()+"<br>")
+                    })
+                }
+            })
+
+            //restore position if showing old cv
+            {% if cv %}
+                $("#carouselPhoto").find(".carousel-item").each((i,el) => {
+                    if($(el).find("iframe").attr("src") === "{{ cv.template_photo }}") $(el).addClass("active")
+                    if($(el).find("iframe").hasClass("active") && $(el).find("iframe").attr("src") !== "{{ cv.template_photo }}") $(el).removeClass("active")
+                })
+                $("#carouselName").find(".carousel-item").each((i,el) => {
+                    if($(el).find("iframe").attr("src") === "{{ cv.template_name }}") $(el).addClass("active")
+                    if($(el).find("iframe").hasClass("active") && $(el).find("iframe").attr("src") !== "{{ cv.template_name }}") $(el).removeClass("active")
+                })
+                $("#carouselAdress").find(".carousel-item").each((i,el) => {
+                    if($(el).find("iframe").attr("src") === "{{ cv.template_adresse }}") $(el).addClass("active")
+                    if($(el).find("iframe").hasClass("active") && $(el).find("iframe").attr("src") !== "{{ cv.template_adresse }}") $(el).removeClass("active")
+                })
+                $("#carouselExperience").find(".carousel-item").each((i,el) => {
+                    if($(el).find("iframe").attr("src") === "{{ cv.template_experience }}") $(el).addClass("active")
+                    if($(el).find("iframe").hasClass("active") && $(el).find("iframe").attr("src") !== "{{ cv.template_experience }}") $(el).removeClass("active")
+                })
+                $("#carouselEducation").find(".carousel-item").each((i,el) => {
+                    if($(el).find("iframe").attr("src") === "{{ cv.template_education }}") $(el).addClass("active")
+                    if($(el).find("iframe").hasClass("active") && $(el).find("iframe").attr("src") !== "{{ cv.template_education }}") $(el).removeClass("active")
+                })
+                $("#carouselSkills").find(".carousel-item").each((i,el) => {
+                    if($(el).find("iframe").attr("src") === "{{ cv.template_skills }}") $(el).addClass("active")
+                    if($(el).find("iframe").hasClass("active") && $(el).find("iframe").attr("src") !== "{{ cv.template_skills }}") $(el).removeClass("active")
+                })
+                $("#carouselLanguage").find(".carousel-item").each((i,el) => {
+                    if($(el).find("iframe").attr("src") === "{{ cv.template_language }}") $(el).addClass("active")
+                    if($(el).find("iframe").hasClass("active") && $(el).find("iframe").attr("src") !== "{{ cv.template_language }}") $(el).removeClass("active")
+                })
+                $(".carousel-control-prev, .carousel-control-next").hide()
+            {% endif %}
+
+            // resize iframes on start when DOM loaded
+            $('.carousel-item.active iframe').each(function() {
+                $(this).get(0).style.height = $(this).get(0).contentWindow.document.documentElement.scrollHeight + 'px';
+            })
+
+        });
+
+        // resize iframes after slide
+        $('.carousel').each(function() {
+            $(this).on('slid.bs.carousel', function(ev) {
+                var iframe = $(ev.relatedTarget).find('iframe').get(0)
+                iframe.style.height = iframe.contentWindow.document.documentElement.scrollHeight + 'px';
+            })
+        })
+
+        function saveCV() {
+            var activeTemplates = $(".carousel-item.active")
+
+            var photo, name, adress, language, experience, education, skills;
+
+            activeTemplates.each((i,t) => {
+                var src = $(t).find("iframe").attr("src")
+                if(src.includes("photo")) photo = src
+                else if(src.includes("name")) name = src
+                else if(src.includes("adress")) adress = src
+                else if(src.includes("language")) language = src
+                else if(src.includes("experience")) experience = src
+                else if(src.includes("education")) education = src
+                else if(src.includes("skills")) skills = src
+            })
+
+            $("#id_template_adresse").val(adress)
+            $("#id_template_education").val(education)
+            $("#id_template_photo").val(photo)
+            $("#id_template_name").val(name)
+            $("#id_template_language").val(language)
+            $("#id_template_experience").val(experience)
+            $("#id_template_skills").val(skills)
+
+        }
+    </script>
+
+
+{% endblock %}
