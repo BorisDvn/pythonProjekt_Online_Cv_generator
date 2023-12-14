@@ -4,12 +4,16 @@ reproduce and validate a CV to then save it in a database and reload it as often
 ---
 
 ## Installation
-pip install -r requirements.txt
-pip3 install -r requirements.txt
-
-python manage.py migrate 
-python3 manage.py migrate 
+<pre><code>pip3 install -r requirements.txt</code></pre>
+<pre><code>python3 manage.py migrate</code></pre>
 
 ## Start
-python manage.py runserver
-python3 manage.py runserver
+<pre><code>python3 manage.py runserver</code></pre>
+
+---
+![Home screenshot1](https://github.com/BorisDvn/pythonProjekt_Online_Cv_generator/blob/main/screenshot/home1.png "Home screenshot1")
+![Home screenshot2](https://github.com/BorisDvn/pythonProjekt_Online_Cv_generator/blob/main/screenshot/home2.png "Home screenshot2")
+![Home screenshot3](https://github.com/BorisDvn/pythonProjekt_Online_Cv_generator/blob/main/screenshot/home3.png "Home screenshot3")
+![Login screenshot](https://github.com/BorisDvn/pythonProjekt_Online_Cv_generator/blob/main/screenshot/login.png "Login screenshot")
+![Data screenshot](https://github.com/BorisDvn/pythonProjekt_Online_Cv_generator/blob/main/screenshot/data.png "Data screenshot")
+![Skill screenshot](https://github.com/BorisDvn/pythonProjekt_Online_Cv_generator/blob/main/screenshot/skill.png "Skill screenshot")
